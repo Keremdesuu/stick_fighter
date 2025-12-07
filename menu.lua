@@ -21,17 +21,13 @@ function Menu.new()
             {text = "GERİ", action = "back"}
         },
         controls = {
-            {text = "OYUNCU 1 KONTROLLERİ"},
+            {text = "OYUNCU KONTROLLERİ"},
             {text = "  Sağa/Sola: A/D"},
             {text = "  Zıplama: W"},
             {text = "  Saldırı: F"},
             {text = "  Silah Al: E"},
             {text = ""},
-            {text = "OYUNCU 2 KONTROLLERİ"},
-            {text = "  Sağa/Sola: ←/→"},
-            {text = "  Zıplama: ↑"},
-            {text = "  Saldırı: Sağ Ctrl"},
-            {text = "  Silah Al: Sağ Shift"},
+            {text = "Rakip yapay zeka tarafından kontrol edilir"},
             {text = ""},
             {text = "GERİ", action = "back"}
         }

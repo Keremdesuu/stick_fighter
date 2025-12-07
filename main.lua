@@ -20,10 +20,12 @@ function love.load()
     gameCanvas = love.graphics.newCanvas(GAME_WIDTH, GAME_HEIGHT)
     
     -- Modülleri önce yükle
+    require("animation")
     require("player")
     require("weapon")
     require("weaponGenerator")
     require("menu")
+    require("ai")
     
     -- Menü oluştur
     menu = Menu.new()
@@ -53,9 +55,16 @@ function startGame()
     -- Silah generator'lerini oluştur
     createWeaponGenerators()
     
-    -- İki oyuncu oluştur
-    gameState.players[1] = Player.new(200, 300, 1)
-    gameState.players[2] = Player.new(1000, 300, 2)
+    -- Oyuncu ve AI rakip oluştur
+    local player = Player.new(200, 300, 1)
+    local aiPlayer = Player.new(1000, 300, 2)
+    aiPlayer.isAI = true  -- AI olarak işaretle
+    
+    table.insert(gameState.players, player)
+    table.insert(gameState.players, aiPlayer)
+    
+    -- AI oluştur
+    gameState.ai = AI.new(aiPlayer, player)
 end
 
 function love.update(dt)
@@ -65,6 +74,11 @@ function love.update(dt)
         -- Oyuncuları güncelle
         for _, player in ipairs(gameState.players) do
             player:update(dt)
+        end
+        
+        -- AI'yı güncelle
+        if gameState.ai then
+            gameState.ai:update(dt)
         end
         
         -- Silah generator'lerini güncelle
@@ -235,13 +249,13 @@ function drawUI()
     love.graphics.setColor(1, 1, 1)
     love.graphics.print("Player 1", 20, 55)
     
-    -- Oyuncu 2 sağlık barı
+    -- Oyuncu 2 sağlık barı (AI)
     love.graphics.setColor(1, 0, 0)
     love.graphics.rectangle("fill", 880, 20, 300, 30)
     love.graphics.setColor(0, 1, 0)
     love.graphics.rectangle("fill", 880, 20, 300 * (gameState.players[2].health / 100), 30)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print("Player 2", 1120, 55)
+    love.graphics.print("AI Rakip", 1120, 55)
     
     -- Combo göstergesi
     for i, player in ipairs(gameState.players) do

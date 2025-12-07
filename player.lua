@@ -43,6 +43,13 @@ function Player.new(x, y, playerNum)
     -- Kontroller
     self:setupControls(playerNum)
     
+    -- AI kontrolü flag
+    self.isAI = false
+    
+    -- Animatör
+    self.animator = StickAnimator.new()
+    self.lastHealth = self.health
+    
     return self
 end
 
@@ -70,31 +77,39 @@ function Player:update(dt)
     -- Zemin kontrolü
     self:checkGround()
     
-    -- Hareket
-    self.velocityX = 0
-    
-    if love.keyboard.isDown(self.controls.left) then
-        self.velocityX = -self.speed
-        self.facingRight = false
-    elseif love.keyboard.isDown(self.controls.right) then
-        self.velocityX = self.speed
-        self.facingRight = true
+    -- Hareket (AI için velocityX dışarıdan ayarlanabilir)
+    if not self.isAI then
+        self.velocityX = 0
+        
+        if love.keyboard.isDown(self.controls.left) then
+            self.velocityX = -self.speed
+            self.facingRight = false
+        elseif love.keyboard.isDown(self.controls.right) then
+            self.velocityX = self.speed
+            self.facingRight = true
+        end
     end
     
     local vx, vy = self.body:getLinearVelocity()
     self.body:setLinearVelocity(self.velocityX, vy)
     
     -- Zıplama
-    if love.keyboard.isDown(self.controls.jump) and self.isGrounded then
-        self.body:applyLinearImpulse(0, self.jumpForce)
+    if not self.isAI then
+        if love.keyboard.isDown(self.controls.jump) and self.isGrounded then
+            self.body:applyLinearImpulse(0, self.jumpForce)
+        end
     end
     
     -- Pickup tuşu kontrolü
-    self.pickupKey = love.keyboard.isDown(self.controls.pickup)
+    if not self.isAI then
+        self.pickupKey = love.keyboard.isDown(self.controls.pickup)
+    end
     
     -- Saldırı
-    if love.keyboard.isDown(self.controls.attack) and not self.isAttacking and self.attackCooldown <= 0 then
-        self:attack()
+    if not self.isAI then
+        if love.keyboard.isDown(self.controls.attack) and not self.isAttacking and self.attackCooldown <= 0 then
+            self:attack()
+        end
     end
     
     -- Saldırı timer'ları
@@ -118,6 +133,9 @@ function Player:update(dt)
             self.comboTimer = 0
         end
     end
+    
+    -- Animatörü güncelle
+    self.animator:update(dt, self)
 end
 
 function Player:checkGround()
@@ -239,42 +257,6 @@ function Player:equipWeapon(weapon)
 end
 
 function Player:draw()
-    local x, y = self.body:getPosition()
-    
-    -- Çöp adam gövdesi
-    love.graphics.setColor(1, 1, 1)
-    
-    -- Baş
-    love.graphics.circle("line", x, y - 30, 10)
-    
-    -- Gövde
-    love.graphics.line(x, y - 20, x, y + 20)
-    
-    -- Kollar
-    local armAngle = self.isAttacking and 0.5 or 0
-    if self.facingRight then
-        love.graphics.line(x, y - 10, x + 15 + math.cos(armAngle) * 10, y + math.sin(armAngle) * 10)
-        love.graphics.line(x, y - 10, x - 10, y + 5)
-    else
-        love.graphics.line(x, y - 10, x - 15 - math.cos(armAngle) * 10, y + math.sin(armAngle) * 10)
-        love.graphics.line(x, y - 10, x + 10, y + 5)
-    end
-    
-    -- Bacaklar
-    love.graphics.line(x, y + 20, x - 10, y + 40)
-    love.graphics.line(x, y + 20, x + 10, y + 40)
-    
-    -- Saldırı göstergesi
-    if self.isAttacking then
-        love.graphics.setColor(1, 0, 0, 0.5)
-        local attackX = self.facingRight and x + self.attackRange/2 or x - self.attackRange/2
-        love.graphics.circle("fill", attackX, y, 10)
-    end
-    
-    -- Silah
-    if self.weapon then
-        love.graphics.setColor(0.5, 0.5, 0.5)
-        local weaponX = self.facingRight and x + 20 or x - 20
-        love.graphics.rectangle("fill", weaponX - 5, y - 5, 25, 10)
-    end
+    -- Animatörü kullan
+    self.animator:draw(self)
 end
