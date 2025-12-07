@@ -1,0 +1,3 @@
+@echo off
+echo Stick Fight Baslatiliyor...
+"C:\Program Files\LOVE\love.exe" .
